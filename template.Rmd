@@ -1,0 +1,286 @@
+---
+title: "Writing Functions"
+output: github_document
+---
+
+```{r, include = FALSE, message = FALSE, warning = FALSE}
+library(tidyverse)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+```
+
+Load key packages.
+
+```{r}
+library(tidyverse)
+library(rvest)
+```
+
+Set seed for reproducibility.
+
+```{r}
+set.seed(12345)
+```
+
+### Z score function
+
+Z scores subtract the mean and divide by the sd. 
+
+```{r}
+x_vec = rnorm(25, mean = 5, sd = .3)
+```
+
+compute Z scors for 'x_vec'
+
+```{r}
+(x_vec - mean(x_vec)) / sd(x_vec)
+```
+
+Write a function to do this!
+
+```{r}
+z_score = function(x) {
+  
+  if (!is.numeric(x)) {   # 这一行检查 `x` 是否不是数值变量。如果 `x` 是数值变量，函数 `is.numeric(x)` 返回 `TRUE'；如果不是数值变量，函数 `is.numeric(x)` 返回 `FALSE'。在 `is.numeric(x)` 前面的 `!` 表示否定条件，因此它检查 `x` 是否不是数值变量。
+    stop("Argument should be numbers")  #  如果 `x` 不是数值，则执行大括号内的代码。在这种情况下，程序会停止执行并显示错误信息： "参数应为数字。这意味着，如果输入的参数不是数值，代码就会以这条错误信息结束。
+  } else if (length(x) < 2) {   # 如果第一个条件未满足（即如果 `x` 是数值），则进入下一个条件。该条件使用 `length(x) < 2` 检查 `x` 的长度是否小于 2。如果 `x` 包含的元素少于 2 个，则执行大括号内的代码。
+    stop("You need at least 2 numbers to get z scores")   #   在这种情况下，程序会再次停止执行，并显示不同的错误信息： "您至少需要 2 个数字才能得到 z 分数。这意味着，如果您将一个数值作为参数传递，但其中包含的元素少于 2 个（例如，一个数字），代码就会以这条错误信息终止。
+  }
+  # 总之，这段代码旨在验证函数的参数 `x`。参数应为数字且至少包含 2 个元素，以便继续执行函数要执行的操作。如果 `x` 不符合这些条件，就会显示相应的错误信息，并停止程序的执行。
+  
+  z = (x - mean(x)) / sd(x)
+  
+  z
+  
+}
+```
+
+Check that this works.
+
+```{r}
+z_score(x = x_vec)
+
+z_score(x = rnorm(10, mean = 5))
+```
+
+Keep checking.
+
+```{r, error=FALSE}
+z_score(x = 3)
+
+z_score(c("my", "name", "is", "jeff"))
+
+z_score(c(TRUE, TRUE, FALSE, TRUE))
+
+z_score(iris)
+```
+
+### Multiple outputs.
+
+Write a function that returns the mean and sd from a sample of numbers.
+
+```{r}
+mean_and_sd = function(x) {
+  
+  if (!is.numeric(x)) {
+    stop("Argument should be numbers")
+  } else if (length(x) < 2) {
+    stop("You need at least 2 numbers to get z scores")
+  }
+
+  mean_x = mean(x)
+  sd_x = sd(x)
+  
+  tibble(
+    mean = mean_x,
+    sd = sd_x
+  )
+  
+}
+```
+
+Double check I did this right ..
+
+```{r}
+mean_and_sd(x_vec)
+```
+
+
+
+### Start getting means and sds
+
+```{r}
+
+x_vec = rnorm(n = 30, mean = 5, sd = .5)
+
+tibble(
+  mean = mean(x_vec),
+  sd = sd(x_vec)
+)
+```
+
+Let's write a function that uses `n`, a true mean, and true SD as inputs. 
+
+```{r}
+sim_mean_sd = function(n_obs, mu = 5, sigma = 1) {
+  
+  x_vec = rnorm(n = n_obs, mean = mu, sd = sigma)
+
+  tibble(
+    mean = mean(x_vec),
+    sd = sd(x_vec)
+  )
+  
+}
+
+sim_mean_sd(n_obs = 3000, mu = 50)
+
+sim_mean_sd(12, 24, 4)
+```
+
+### LoTR Words
+
+
+
+```{r}
+fellowship_ring = 
+  readxl::read_excel("data/LotR_Words.xlsx", range = "B3:D6") |>
+  mutate(movie = "fellowship_ring") |> 
+  janitor::clean_names() |> 
+  select(movie)
+
+lotr_load_and_tidy = function(path = "data/LotR_Words.xlsx", cell_range, movie_name) {  #   - 函数名称： Lotr_load_and_tidy, 参数：path`（默认值："data/LotR_Words.xlsx"）： 该参数表示 Excel 文件的文件路径。默认设置为 "data/LotR_Words.xlsx"。 cell_range`： 该参数没有指定默认值，预计包含 Excel 文件中的单元格区域。 movie_name`： 该参数也未指定默认值，预计包含电影名称。
+
+  # 函数体中的代码将执行若干操作：
+  movie_df = 
+    readxl::read_excel(path, range = cell_range) |>
+    mutate(movie = movie_name) |> 
+    janitor::clean_names() |> 
+    pivot_longer(
+      female:male,
+      names_to = "sex",
+      values_to = "words"
+    ) |> 
+    select(movie, everything())
+  #    a. `movie_df = ...`：读取由 `path` 指定的 Excel 文件，并从 `cell_range` 中提供的单元格区域提取数据。结果存储在 `movie_df` 数据帧中。
+   
+   # b. mutate(movie=movie_name)`：在 `movie_df` 数据帧中添加名为 "movie "的新列，并用 `movie_name` 的值填充。这将用于在数据中标注电影名称。
+   
+   #c. jjanitor::clean_names()`：应用 janitor 软件包中的 `clean_names()` 函数，对 `movie_df` 数据帧中的列名进行清理和标准化。
+
+   #d. pivot_longer(...)`：将数据从宽格式重塑为长格式。它将 "女 "到 "男 "的列转换为两列： "性别 "和 "字数"。
+
+   #e. select(movie,everything())`：重新排列 `movie_df` 数据帧中的列，将 "movie "列移到前面，保留所有其他列。
+  
+  #   函数返回 `movie_df` 数据框，其中包含从 Excel 文件中提取和处理的数据。
+
+  movie_df
+  
+}
+
+lotr_df = 
+  bind_rows(
+    lotr_load_and_tidy(cell_range = "B3:D6", movie_name = "fellowship_ring"),
+    lotr_load_and_tidy(cell_range = "F3:H6", movie_name = "two_towers"),
+    lotr_load_and_tidy(cell_range = "J3:L6", movie_name = "return_king")
+  )
+
+# 1. lotr_load_and_tidy(...)`：这个函数会被调用三次，每次都有不同的参数，分别对应不同的电影：The Fellowship of the Ring"（单元格区域："B3:D6）双塔奇兵》（单元格区域："F3:H6）王者归来》（单元格区域："J3:L6）
+# 2. `bind_rows(...)` bind_rows "函数用于将三个函数调用的结果合并为一个数据帧（"lotr_df"）。该函数实际上是将数据帧堆叠在一起，按列对齐。
+# 因此，`lotr_df` 将包含来自所有三部影片的合并数据，其结构类似于`lotr_load_and_tidy`函数返回的单个数据帧。在 `lotr_df` 中的每一行将代表其中一部电影中不同角色的字数，而 "movie"（电影）列将表示数据对应的电影（"fellowship_ring"、"two_towers "或 "return_king"）。
+
+```
+
+
+### NSDUH
+
+```{r}
+nsduh_url = "http://samhda.s3-us-gov-west-1.amazonaws.com/s3fs-public/field-uploads/2k15StateFiles/NSDUHsaeShortTermCHG2015.htm"
+
+nsduh_html = read_html(nsduh_url)
+
+data_marj = 
+  nsduh_html |> 
+  html_table() |> 
+  nth(1) |>
+  slice(-1) |> 
+  select(-contains("P Value")) |>
+  pivot_longer(
+    -State,
+    names_to = "age_year", 
+    values_to = "percent") |>
+  separate(age_year, into = c("age", "year"), sep = "\\(") |>
+  mutate(
+    year = str_replace(year, "\\)", ""),
+    percent = str_replace(percent, "[a-c]$", ""),
+    percent = as.numeric(percent)) |>
+  filter(!(State %in% c("Total U.S.", "Northeast", "Midwest", "South", "West")))
+
+
+```
+
+```{r}
+# 1. nsduh_url`：
+#    - 该变量存储指向包含数据的网页的 URL。在本例中，它似乎与 2015 年全国毒品使用和健康调查（NSDUH）有关。
+# 2. nsduh_html`：
+#    - 该变量存储从 `nsduh_url` 中指定的 URL 读取 HTML 内容的结果。`read_html` 函数用于获取和解析 HTML 内容。
+# 3. `data_marj`：
+#    - 创建此变量是为了存储从网页中提取的经过处理和清理的数据。
+# 4. 数据清理和转换：
+#    - `nsduh_html |> html_table()`： 从 HTML 内容中提取 HTML 表格。
+#    - nth(1)`： 选择第一个表格。
+#    - `slice(-1)`： 删除表格的最后一行。
+#    - `select(-contains("P Value"))`： 删除包含 "P 值 "的列。
+#    - `pivot_longer(...)`： 将数据从宽格式重塑为长格式，其中包含 "州"、"年龄_年份 "和 "百分比 "列。
+#    - separate(...)`： 使用正则表达式将 "age_year "列拆分为单独的 "age "和 "year "列。
+#    - `mutate(...)`： 修改 "年份 "和 "百分比 "列。它会删除 "年份 "列中的括号，并将 "百分比 "列转换为数字。
+#    - 过滤(...)`： 排除 "州 "列包含 "全美"、"东北部"、"中西部"、"南部 "和 "西部 "等值的行。
+# 存储在 "data_marj "中的结果是一个经过清理和转换的数据框架，其中可能包含与不同州、年龄组和年份的毒品使用百分比有关的信息，这些信息基于 2015 年的 NSDUH 数据。代码删除了不必要的行和列，并对数据进行了重塑，以便进一步分析或可视化。
+```
+
+Try to write a quick function.
+
+```{r}
+nsduh_import = function(html, table_number, outcome_name){
+  
+  html |> 
+  html_table() |> 
+  nth(table_number) |>
+  slice(-1) |> 
+  select(-contains("P Value")) |>
+  pivot_longer(
+    -State,
+    names_to = "age_year", 
+    values_to = "percent") |>
+  separate(age_year, into = c("age", "year"), sep = "\\(") |>
+  mutate(
+    year = str_replace(year, "\\)", ""),
+    percent = str_replace(percent, "[a-c]$", ""),
+    percent = as.numeric(percent),
+    outcome = outcome_name) |>
+  filter(!(State %in% c("Total U.S.", "Northeast", "Midwest", "South", "West")))
+  
+}
+
+nsduh_import(html = nsduh_html, table_number = 1, outcome_name = "marj")
+nsduh_import(html = nsduh_html, table_number = 4, outcome_name = "cocaine")
+
+```
+
