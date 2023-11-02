@@ -154,7 +154,6 @@ sim_mean_sd(n_obs = 3000, mu = 50)
 
 sim_mean_sd(12, 24, 4)
 ```
-
 ### LoTR Words
 
 
@@ -189,7 +188,7 @@ lotr_load_and_tidy = function(path = "data/LotR_Words.xlsx", cell_range, movie_n
 
    #e. select(movie,everything())`：重新排列 `movie_df` 数据帧中的列，将 "movie "列移到前面，保留所有其他列。
   
-  #   函数返回 `movie_df` 数据框，其中包含从 Excel 文件中提取和处理的数据。
+    #   函数返回 `movie_df` 数据框，其中包含从 Excel 文件中提取和处理的数据。
 
   movie_df
   
@@ -207,7 +206,6 @@ lotr_df =
 # 因此，`lotr_df` 将包含来自所有三部影片的合并数据，其结构类似于`lotr_load_and_tidy`函数返回的单个数据帧。在 `lotr_df` 中的每一行将代表其中一部电影中不同角色的字数，而 "movie"（电影）列将表示数据对应的电影（"fellowship_ring"、"two_towers "或 "return_king"）。
 
 ```
-
 
 ### NSDUH
 
@@ -283,4 +281,3 @@ nsduh_import(html = nsduh_html, table_number = 1, outcome_name = "marj")
 nsduh_import(html = nsduh_html, table_number = 4, outcome_name = "cocaine")
 
 ```
-
